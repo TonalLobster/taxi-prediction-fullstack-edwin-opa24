@@ -13,5 +13,5 @@ setup(
     install_requires = ["streamlit", "pandas", "fastapi", "uvicorn"],
     package_dir = {"": "src"},
     package_data = {"taxipred": ["data/*.csv"]},
-    packages = find_packages(),
+    packages = find_packages(where="src")
 )
