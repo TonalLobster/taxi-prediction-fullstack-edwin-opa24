@@ -12,10 +12,6 @@ st.set_page_config(
 # --- API URL ---
 SMART_API_URL = "http://127.0.0.1:8000/smart_predict"
 
-# Hardcoded example Coordinates for map visualization
-GOTHENBURG_C_COORDS = (57.7088, 11.9745)
-LISEBERG_COORDS = (57.6975, 12.0301)
-
 # Sidebar setup ( business rules for product owner/admin)
 with st.sidebar:
     st.header("⚙️ Business Rules (Product Owner Settings)")
@@ -73,6 +69,13 @@ if st.button("Calculate Price", type ="primary", use_container_width=True):
                 st.session_state.start_loc = start_location
                 st.session_state.end_loc = end_location
                 st.session_state.error = None
+
+                # rows for map
+                st.session_state.start_lat = result.get("start_lat")
+                st.session_state.start_lon = result.get("start_lon")
+                st.session_state.end_lat = result.get("end_lat")
+                st.session_state.end_lon = result.get("end_lon")
+
     except requests.exceptions.RequestException as e:
         "Error if the FastAPI server is down"
         st.session_state.error = f"Could not connect tot the API: {e}. Is it running?"
@@ -95,16 +98,16 @@ elif "price" in st.session_state and st.session_state.price is not None:
     
 
     # simulated map for visual appeal
-    st.subheader("Simulated Route visualizer")
-    st.markdown("Shows general locations for visual effect)")
+    st.subheader("Visualized Route")
+    st.markdown("Show start and end destination according to Google Maps")
 
     # DataFrame for the map
     map_data = pd.DataFrame({
-        "lat": [GOTHENBURG_C_COORDS[0], LISEBERG_COORDS[0]],
-        "lon": [GOTHENBURG_C_COORDS[1], LISEBERG_COORDS[1]],
+        "lat": [st.session_state.start_lat, st.session_state.end_lat],
+        "lon": [st.session_state.start_lon, st.session_state.end_lon],
         "label": ["Start", "End"]
     })
 
-    st.map(map_data, zoom=12)
+    st.map(map_data, zoom=10)
 
 

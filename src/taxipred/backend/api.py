@@ -85,8 +85,12 @@ async def smart_predict_price(trip: SimpleTrip):
         
         # Extract data from the first route leg
         route = directions_result[0]["legs"][0]
+        # get latitude and longitude fro map
+        start_lat = route["start_location"]["lat"]
+        start_lon = route["start_location"]["lng"]
+        end_lat = route["end_location"]["lat"]
+        end_lon = route["end_location"]["lng"]
         distance_km = route["distance"]["value"] / 1000
-
         # Use duration with traffic for predition accuracy
         duration_seconds = route["duration_in_traffic"]["value"] if "duration_in_traffic" in route else route["duration"]["value"]
         trip_duration_minutes = duration_seconds / 60
@@ -125,35 +129,12 @@ async def smart_predict_price(trip: SimpleTrip):
         return {
             "predicted_price": round(prediction[0], 2),
             "calculated_distance_km": round(distance_km, 2),
-            "calculated_duration_minutes": round(trip_duration_minutes, 2)
+            "calculated_duration_minutes": round(trip_duration_minutes, 2),
+            "start_lat": start_lat,
+            "start_lon": start_lon,
+            "end_lat": end_lat,
+            "end_lon": end_lon,
         }
     
     except Exception as e:
         return {"error": f"An unexcpected error occurred during API call:{e}"}
-    
-
-
-
-
-
-
-
-
-
-    # 1. Convert the incoming data from the user into a pandas DataFrame
-    input_data = pd.DataFrame([trip.model_dump()])
-
-    # 2. convert text columns to numverical "Dummy" columns, just like the notebook
-    input_processed = pd.get_dummies(input_data)
-
-    # 3. Ensure the input data has the exact same columns as the moidel was trained on
-    # This is a critical step to avoid errors if a category is missing.
-
-    model_columns = model.feature_names_in_
-    input_processed = input_processed.reindex(columns=model_columns, fill_value=0)
-
-    # 4. use the loaded model to make a prediction
-    prediction = model.predict(input_processed)
-
-    # 5. return the prediction, rounded to 2 decimals in a JSON response
-    return {"predicted_price": round(prediction[0], 2)}
