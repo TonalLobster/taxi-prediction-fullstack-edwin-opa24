@@ -4,9 +4,9 @@ import requests
 
 # --- Page configuration ---
 st.set_page_config(
-    page_title = "Taxi Fare Prediction Dashboard",
-    page_icon = "🚕",
-    layout = "wide",
+    page_title="Taxi Fare Prediction Dashboard",
+    page_icon="🚕",
+    layout="wide",
 )
 
 # --- API URL ---
@@ -15,14 +15,21 @@ SMART_API_URL = "http://127.0.0.1:8000/smart_predict"
 # Sidebar setup ( business rules for product owner/admin)
 with st.sidebar:
     st.header("⚙️ Business Rules (Product Owner Settings)")
-    st.markdown("Adjust the base fare and rates to see the immediate impact on the prediction.")
+    st.markdown(
+        "Adjust the base fare and rates to see the immediate impact on the prediction."
+    )
 
-    custom_base_fare = st.number_input("Base Fare ($)", min_value=1.0, value=3.5, step=0.1)
-    custom_per_km_rate = st.number_input("Rate Per km ($)", min_value=0.5, value=1.5, step = 0.05)
-    custom_per_minute_rate = st.number_input("Rate Per Minute ($)", min_value=0.1, value=0.4, step=0.05)
+    custom_base_fare = st.number_input(
+        "Base Fare ($)", min_value=1.0, value=3.5, step=0.1
+    )
+    custom_per_km_rate = st.number_input(
+        "Rate Per km ($)", min_value=0.5, value=1.5, step=0.05
+    )
+    custom_per_minute_rate = st.number_input(
+        "Rate Per Minute ($)", min_value=0.1, value=0.4, step=0.05
+    )
 
     st.markdown("---")
-
 
 
 # --- Main Page Content ---
@@ -31,7 +38,7 @@ st.markdown("Enter your trip details to get a estimated price for ytour trip")
 
 # --- User input for trip ---
 st.header("1. Plan your trip")
-col1,col2,col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 with col1:
     start_location = st.text_input("Where are you?", "Centralstationen, Borås")
 with col2:
@@ -41,14 +48,15 @@ with col3:
     passenger_count = st.slider("Number of Passengers", 1, 4, 1)
 
 # --- Prediction Button and Logic ---
-if st.button("Calculate Price", type ="primary", use_container_width=True):
+st.markdown("---")
+if st.button("Calculate Price", type="primary", use_container_width=True):
     payload = {
         "start_location": start_location,
         "end_location": end_location,
         "passenger_count": passenger_count,
         "base_fare": custom_base_fare,
         "per_km_rate": custom_per_km_rate,
-        "per_minute_rate": custom_per_minute_rate
+        "per_minute_rate": custom_per_minute_rate,
     }
 
     try:
@@ -95,19 +103,29 @@ elif "price" in st.session_state and st.session_state.price is not None:
         st.metric("Distance", f"{st.session_state.distance:.2f} km")
     with col_res3:
         st.metric("Travel Time", f"{st.session_state.duration:.0f} min")
-    
 
     # simulated map for visual appeal
+    st.markdown("---")
     st.subheader("Visualized Route")
     st.markdown("Show start and end destination according to Google Maps")
 
+    # calculate median for correct view of the map
+    center_lat = (st.session_state.start_lat + st.session_state.end_lat) / 2
+    center_lon = (st.session_state.start_lon + st.session_state.end_lon) / 2
+
     # DataFrame for the map
-    map_data = pd.DataFrame({
-        "lat": [st.session_state.start_lat, st.session_state.end_lat],
-        "lon": [st.session_state.start_lon, st.session_state.end_lon],
-        "label": ["Start", "End"]
-    })
+    map_data = pd.DataFrame(
+        {
+            "lat": [st.session_state.start_lat, st.session_state.end_lat],
+            "lon": [st.session_state.start_lon, st.session_state.end_lon],
+            "label": ["Start", "End"],
+        }
+    )
 
-    st.map(map_data, zoom=10)
-
-
+    # use the median and a low zoom to show the whole trip.
+    st.map(
+        map_data,
+        latitude=center_lat,
+        longitude=center_lon,
+        zoom=9,
+    )
