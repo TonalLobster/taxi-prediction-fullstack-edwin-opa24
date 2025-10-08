@@ -95,7 +95,26 @@ async def smart_predict_price(trip: SimpleTrip):
         duration_seconds = route["duration_in_traffic"]["value"] if "duration_in_traffic" in route else route["duration"]["value"]
         trip_duration_minutes = duration_seconds / 60
 
-        # 2. Determine Time and traffic factors
+        # 2. implement business logic / outlier handling
+        if distance_km > 200:
+            predicted_price = (
+                trip.base_fare +
+                (distance_km * trip.per_km_rate) +
+                (trip_duration_minutes * trip.per_minute_rate)
+            )
+
+            return {
+                "predicted_price": round(predicted_price, 2),
+                "calculated_distance_km": round(distance_km, 2),
+                "calculated_duration_minutes": round(trip_duration_minutes, 2),
+                "start_lat": start_lat,
+                "start_lon": start_lon,
+                "end_lat": end_lat,
+                "end_lon": end_lon,
+                "warning": "Price was calculated with Business rule because it's too long to drive"
+            }
+
+        # 3. Determine Time and traffic factors
         now = datetime.datetime.now()
         day_of_week = "Weekend" if now.weekday() >= 5 else "Weekday"
 
@@ -105,7 +124,7 @@ async def smart_predict_price(trip: SimpleTrip):
         traffic_conditions = get_traffic_status(duration_seconds)
         weather = "Clear" 
 
-        # 3. Create DataFrame for the ML model
+        # 4. Create DataFrame for the ML model
         input_data = pd.DataFrame([{
             "Trip_Distance_km": distance_km,
             "Time_of_Day": time_of_day,
@@ -120,7 +139,7 @@ async def smart_predict_price(trip: SimpleTrip):
             "Trip_Duration_Minutes": trip_duration_minutes
         }])
 
-        # 4. preprocess, predict and return
+        # 5. preprocess, predict and return
         input_processed = pd.get_dummies(input_data)
         model_columns = model.feature_names_in_
         input_processed = input_processed.reindex(columns=model_columns, fill_value=0)
