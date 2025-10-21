@@ -7,6 +7,7 @@ import googlemaps
 import datetime
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
 
 # Configuration
@@ -33,7 +34,9 @@ app = FastAPI(
 
 
 # Load the trained ML-model
-model_path = "src/taxipred/backend/models/random_forest_final.joblib"
+# search with pathlib to get the grades.
+dir_path = Path(__file__).resolve().parent
+model_path = dir_path / "models" / "random_forest_final.joblib"
 model = joblib.load(model_path)
 
 
